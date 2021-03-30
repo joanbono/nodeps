@@ -4,8 +4,13 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/joanbono/nodeps/packages/parser"
+	"github.com/joanbono/nodeps/packages/printer"
 )
+
+var red = color.New(color.FgRed)
+var bold = color.New(color.FgHiWhite, color.Bold)
 
 var (
 	packageJson string
@@ -21,13 +26,14 @@ func init() {
 
 func main() {
 	if versionFlag {
-		fmt.Printf("\nNODEPS %v\n\n", version)
+		fmt.Printf("\n\t🟢✝️  NODEPS %v\n\n", bold.Sprintf(version))
 		return
 	}
-	// if packageJson == "" {
-	// 	flag.PrintDefaults()
-	// 	return
-	// }
 
-	parser.Parser(packageJson)
+	appName, description, license, author, table, err := parser.Parser(packageJson)
+	if err != nil {
+		fmt.Printf("\n%v can't open %v\n\n", red.Sprintf("[-] ERROR: "), bold.Sprintf(packageJson))
+	} else {
+		printer.Table(appName, description, license, author, table)
+	}
 }
