@@ -21,9 +21,10 @@ func Parser(packageJson string) (string, string, string, string, [][]string, err
 	license := gjson.Get(string(read), "license")
 	author := gjson.Get(string(read), "author")
 
+	//fmt.Printf("%v", appName.Str)
+
 	dependencies := gjson.Get(string(read), "dependencies")
 	dependencies.ForEach(func(libName, libVersion gjson.Result) bool {
-
 		results := requests.MakeRequest(fmt.Sprintf(`["%s"]`, libName.Str))
 		latestVersion := gjson.Get(fmt.Sprintf("%s", results), fmt.Sprintf("%s.collected.metadata.version", libName.Str))
 		repository := gjson.Get(string(string(results)), fmt.Sprintf("%s.collected.metadata.links.repository", libName.Str))
@@ -48,14 +49,14 @@ func CheckDependency(installedVersion, latestVersion string) string {
 	v2, err := vsn.NewVersion(latestVersion)
 
 	if err != nil {
-		println("Error getting versions")
+		//println("Error getting versions")
+		updated = "❓"
+	} else {
+		if v1.LessThan(v2) {
+			updated = "⚠️"
+		} else if v1.Equal(v2) {
+			updated = "✅"
+		}
 	}
-
-	if v1.LessThan(v2) {
-		updated = "⚠️"
-	} else if v1.Equal(v2) {
-		updated = "✅"
-	}
-
 	return updated
 }
