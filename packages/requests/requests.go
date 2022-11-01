@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -18,11 +17,11 @@ curl -k -x "http://127.0.0.1:9090" -X POST "https://api.npms.io/v2/package/mget"
 */
 
 // Add proxy for debugging
-var proxyUrl, err = url.Parse("http://127.0.0.1:9090")
+//var proxyUrl, err = url.Parse("http://127.0.0.1:9090")
 
 var tr = &http.Transport{
 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	Proxy:           http.ProxyURL(proxyUrl),
+	// Proxy:           http.ProxyURL(proxyUrl),
 }
 
 var client = &http.Client{Timeout: time.Second * 10, Transport: tr}
