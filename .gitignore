@@ -153,3 +153,4 @@ build/*
 *.syso
 
 package.json
+package*.json

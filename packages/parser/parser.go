@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -9,46 +10,42 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-//Parser will parse the package.json file
+// Parser will parse the package.json file and look for the latest version on npmjs
 func Parser(packageJson string) (string, string, string, string, [][]string, error) {
 	var err error
-	read, err := ioutil.ReadFile(packageJson)
-
 	var table [][]string
+	read, err := ioutil.ReadFile(packageJson)
 
 	appName := gjson.Get(string(read), "name")
 	description := gjson.Get(string(read), "description")
 	license := gjson.Get(string(read), "license")
 	author := gjson.Get(string(read), "author")
 
-	//deps
 	dependencies := gjson.Get(string(read), "dependencies")
 	dependencies.ForEach(func(libName, libVersion gjson.Result) bool {
-		lastVersion, repository, updated := CheckDependency(libName.Str, libVersion.Str)
-		row := []string{updated, libName.Str, libVersion.Str, lastVersion, repository}
+
+		results := requests.MakeRequest(fmt.Sprintf(`["%s"]`, libName.Str))
+		latestVersion := gjson.Get(fmt.Sprintf("%s", results), fmt.Sprintf("%s.collected.metadata.version", libName.Str))
+		repository := gjson.Get(string(string(results)), fmt.Sprintf("%s.collected.metadata.links.repository", libName.Str))
+		updated := CheckDependency(libVersion.Str, latestVersion.Str)
+		row := []string{updated, libName.Str, libVersion.Str, latestVersion.Str, repository.Str}
 		table = append(table, row)
+
 		return true
 	})
 
 	return appName.Str, description.Str, license.Str, author.Str, table, err
 }
 
-// CheckDependency will check the latest version
-// on npms.io site
-func CheckDependency(name, version string) (string, string, string) {
+// CheckDependency will compare current version with latest version
+func CheckDependency(installedVersion, latestVersion string) string {
 	var updated string
-	var url = `https://api.npms.io/v2/package/` + name
-	response := requests.MakeRequest(url)
-	bodyBytes, _ := ioutil.ReadAll(response.Body)
-	defer response.Body.Close()
-	lastVersion := gjson.Get(string(string(bodyBytes)), "collected.metadata.version")
-	repository := gjson.Get(string(string(bodyBytes)), "collected.metadata.links.repository")
 
-	removeTilde := strings.Replace(version, "~", ``, -1)
+	removeTilde := strings.Replace(installedVersion, "~", ``, -1)
 	oldVersion := strings.Replace(removeTilde, "^", ``, -1)
 
 	v1, err := vsn.NewVersion(oldVersion)
-	v2, err := vsn.NewVersion(lastVersion.Str)
+	v2, err := vsn.NewVersion(latestVersion)
 
 	if err != nil {
 		println("Error getting versions")
@@ -60,5 +57,5 @@ func CheckDependency(name, version string) (string, string, string) {
 		updated = "✅"
 	}
 
-	return lastVersion.Str, repository.Str, updated
+	return updated
 }

@@ -21,7 +21,6 @@ func PackageInfo(appName, description, license, author string) {
 
 func Table(appName, description, license, author string, table [][]string) {
 	println()
-	println()
 	tablePrint := tablewriter.NewWriter(os.Stdout)
 	tablePrint.SetHeader([]string{"", " Name ", " Used Version ", " Last Version ", " Repository "})
 	tablePrint.SetHeaderColor(tablewriter.Colors{tablewriter.BgBlueColor, tablewriter.Bold},
