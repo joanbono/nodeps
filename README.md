@@ -1,3 +1,5 @@
+> # ⚠️ This is deprecated!! [`osv-scanner`](https://google.github.io/osv-scanner) by Google does the work way better than this tool 
+
 ![](img/nodeps_banner.png)
 
 Nodeps (**No** **Dep**endencie**s**) will check which libraries in `package.json` are up to date and which ones are using an outdated version which might have vulnerabilities.
